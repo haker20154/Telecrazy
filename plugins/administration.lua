@@ -866,7 +866,7 @@ do
               welcomes = data.welcome.msg..'\n'
             -- If no custom welcome message defined, use this default
             else
-              welcomes = 'Welcome '..greet_uname..'<b>'..new_member..'</b> <code>['..userid..']</code>\nYou are in group <b>'..msg.to.title..'</b>\n'
+              welcomes = 'Welcome '..greet_uname..''..new_member..'</b> <code>['..userid..']</code>\nYou are in group <b>'..msg.to.title..'</b>\n'
             end
             if data.welcome.to == 'group' then
               receiver_api = get_receiver_api(msg)
@@ -1661,11 +1661,11 @@ do
         -- Print group settings
         if matches[1] == 'group' and matches[2] == 'settings' then
           local text = 'Settings for *'..msg.to.title..'*\n'
-                ..'*-* Arabic message = `'..data.lock.arabic..'`\n'
-                ..'*-* <b>Lock</b> <i>bot</i> = `'..data.lock.bot..'`\n'
-                ..'*-* <b>Lock</b> <i>name</i> = `'..data.lock.name..'`\n'
-                ..'*-* <b>Lock</b> <i>photo</i> = `'..data.lock.photo..'`\n'
-                ..'*-* <b>Lock</b> <i>member</i> = `'..data.lock.member..'`\n'
+                ..' Arabic message = `'..data.lock.arabic..'`\n'
+                ..'Lock</b> <i>bot</i> = `'..data.lock.bot..'`\n'
+                ..'<b>Lock</b> name = `'..data.lock.name..'`\n'
+                ..'Lock photo = `'..data.lock.photo..'`\n'
+                ..'<b>Lock</b> member = `'..data.lock.member..'`\n'
                 ..'*-* Spam protection = `'..data.antispam..'`\n'
                 ..'*-* Sticker policy = `'..data.sticker..'`\n'
                 ..'*-* Welcome message = `'..data.welcome.to..'`\n'
