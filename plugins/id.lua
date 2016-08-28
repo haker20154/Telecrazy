@@ -31,11 +31,10 @@ do
         user_name = ''
       end
       local msg = extra.msg
-      local text = '<code>Name      :</code><b>'..(result.first_name or '')..' '..(result.last_name or '')..'</b>\n'
-                 ..'<code>First name:</code>'..(result.first_name or '')..'\n'
-                 ..'<code>Last name :</code>'..(result.last_name or '')..'\n'
-                 ..'<code>User name :</code>'..user_name..'\n'
-                 ..'<code>ID        :'..result.peer_id..'</code>'
+      local text = '<code>FirstName:</code>'..(result.first_name or '----')..'\n'
+             ..'<code>LastName :</code>'..(result.last_name or '----')..'\n'
+             ..'<code>Username :</code>'..user_name..'\n'
+             ..'<code>ID :'..result.peer_id..'</code>\n'
       send_api_msg(msg, get_receiver_api(msg), text, true, 'html')
     else
       send_api_msg(msg, get_receiver_api(msg), '<b>Failed</b> to resolve <code>'
@@ -73,11 +72,10 @@ do
         else
           user_name = ''
         end
-        text = '<code>Name      :</code><b>'..(user.first_name or '')..' '..(user.last_name or '')..'</b>\n'
-             ..'<code>First name:</code>'..(user.first_name or '')..'\n'
-             ..'<code>Last name :</code>'..(user.last_name or '')..'\n'
-             ..'<code>User name :</code>'..user_name..'\n'
-             ..'<code>ID        :'..user.peer_id..'</code>\n\n'
+        text = '<code>FirstName:</code>'..(user.first_name or '----')..'\n'
+             ..'<code>LastName :</code>'..(user.last_name or '----')..'\n'
+             ..'<code>Username :</code>'..user_name..'\n'
+             ..'<code>ID :'..user.peer_id..'</code>\n'
       end
       send_api_msg(msg, get_receiver_api(msg), text, true, 'html')
     end
@@ -89,11 +87,10 @@ do
     else
       user_name = ''
     end
-    local text = '<code>Name      :</code><b>'..(result.from.first_name or '')..' '..(result.from.last_name or '')..'</b>\n'
-               ..'<code>First name:</code>'..(result.from.first_name or '')..'\n'
-               ..'<code>Last name :</code>'..(result.from.last_name or '')..'\n'
-               ..'<code>User name :</code>'..user_name..'\n'
-               ..'<code>ID        :'..result.from.peer_id..'</code>'
+    local text = '<code>FirstName:</code>'..(result.from.first_name or '----')..'\n'
+             ..'<code>LastName :</code>'..(result.from.last_name or '----')..'\n'
+             ..'<code>Username :</code>'..user_name..'\n'
+             ..'<code>ID :'..result.from.peer_id..'</code>\n'
     send_api_msg(extra, get_receiver_api(extra), text, true, 'html')
   end
 
@@ -186,15 +183,14 @@ do
       else
         user_name = ''
       end
-      local text = '<code>Name      :</code><b>'..(msg.from.first_name or '')..' '..(msg.from.last_name or '')..'</b>\n'
-                 ..'<code>First name:</code>'..(msg.from.first_name or '')..'\n'
-                 ..'<code>Last name :</code>'..(msg.from.last_name or '')..'\n'
-                 ..'<code>User name :</code>'..user_name..'\n'
-                 ..'<code>ID        :'..uid..'</code>'
+      local text = '<code>FirstName:</code>'..(msg.from.first_name or '----')..'\n'
+             ..'<code>LastName :</code>'..(msg.from.last_name or '----')..'\n'
+             ..'<code>Username :</code>'..user_name..'\n'
+             ..'<code>ID </code>:'..uid..'\n'
       if not is_chat_msg(msg) then
         send_api_msg(msg, get_receiver_api(msg), text, true, 'html')
       else
-        send_api_msg(msg, get_receiver_api(msg), text..'\n\nYou are in group <b>'..msg.to.title..'</b> [<code>'..gid..'</code>]', true, 'html')
+        send_api_msg(msg, get_receiver_api(msg), text..'You are in group <b>'..msg.to.title..'</b> [<code>'..gid..'</code>]', true, 'html')
       end
     end
 

@@ -405,11 +405,12 @@ do
         group_type = msg.to.peer_type,
         link = '',
         lock = {
-          arabic = 'ok',
+          arabic = 'no',
           bot = 'no',
           member = 'no',
           name = 'yes',
           photo = 'yes',
+	  links = 'yes',
         },
         members = {},
         moderators = {},
@@ -420,7 +421,7 @@ do
           name = msg.to.title,
           photo = 'data/'..chat_id..'/'..chat_id..'.jpg',
         },
-        sticker = 'ok',
+        sticker = 'no',
         username = msg.to.username or '',
         welcome = {
           to = 'group',
@@ -719,6 +720,7 @@ do
     local receiver = get_receiver(msg)
 
     if msg.text then
+      local data = load_data(_config.administration[gid])
       -- If sender is sudo then re-enable the channel
       if msg.text == '!channel enable' and is_sudo(uid) then
         _config.disabled_channels[receiver] = false
@@ -727,27 +729,15 @@ do
       if _config.disabled_channels[receiver] == true then
         msg.text = ''
       end
-
+      --check link
+      if (msg.text:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.text:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) and data.lock.links == 'yes' then
+            delete_msg(msg.id,ok_cb,false)
+      end
       -- Anti arabic
       if msg.text:match('([\216-\219][\128-\191])') and _config.administration[gid] then
         if uid > 0 and not is_mod(msg, gid, uid) then
-          local data = load_data(_config.administration[gid])
-          local arabic_hash = 'mer_arabic:'..gid
-          local is_arabic_offender = redis:sismember(arabic_hash, uid)
-          if data.lock.arabic == 'warn' then
-            if is_arabic_offender then
-              kick_user(msg, gid, uid)
-              redis:srem(arabic_hash, uid)
-            end
-            if not is_arabic_offender then
-              redis:sadd(arabic_hash, uid)
-              reply_msg(msg.id, 'Please do not post in arabic.\n'
-                  ..'Obey the rules or you\'ll be kicked.', ok_cb, true)
-            end
-          end
-          if data.lock.arabic == 'kick' then
-            kick_user(msg, gid, uid)
-            reply_msg(msg.id, 'Arabic is not allowed here!', ok_cb, true)
+          if data.lock.arabic == 'yes' then
+            delete_msg(msg.id,ok_cb,false)
           end
         end
       end
@@ -982,23 +972,9 @@ do
         end
       end
       -- If user is sending sticker
-      if msg.media.caption == 'sticker.webp' then
-        local sticker_hash = 'mer_sticker:'..gid..':'..uid
-        local is_sticker_offender = redis:get(sticker_hash)
-        if data.sticker == 'warn' then
-          if is_sticker_offender then
-            kick_user(msg, gid, uid)
-            redis:del(sticker_hash)
-          end
-          if not is_sticker_offender then
-            redis:set(sticker_hash, true)
-            reply_msg(msg.id, 'DO NOT send sticker into this group!\n'
-                ..'This is a WARNING, next time you will be kicked!', ok_cb, true)
-          end
-        end
-        if data.sticker == 'kick' then
-          kick_user(msg, gid, uid)
-          reply_msg(msg.id, 'DO NOT send sticker into this group!', ok_cb, true)
+      if msg.media.caption == 'sticker.webp' and not is_mod(msg, gid, uid) then
+        if data.sticker == 'yes' then
+          delete_msg(msg.id,ok_cb,false)
         end
       end
     end
@@ -1407,71 +1383,6 @@ do
           reply_msg(msg.id, 'Please send me new group photo now', ok_cb, true)
         end
 
-        -- Sticker settings
-        if matches[1] == 'sticker' then
-          if matches[2] == 'warn' then
-            if data.sticker ~= 'warn' then
-              data.sticker = 'warn'
-              save_data(data, chat_db)
-            end
-            reply_msg(msg.id, 'Stickers already prohibited.\n'
-                ..'Sender will be warned first, then kicked for second violation.', ok_cb, true)
-          end
-          if matches[2] == 'kick' then
-            if data.sticker ~= 'kick' then
-              data.sticker = 'kick'
-              save_data(data, chat_db)
-            end
-            reply_msg(msg.id, 'Stickers already prohibited.\n'
-                ..'Sender will be kicked!', ok_cb, true)
-          end
-          if matches[2] == 'ok' then
-            if data.sticker == 'ok' then
-              reply_msg(msg.id, 'Sticker restriction is not enabled.', ok_cb, true)
-            else
-              data.sticker = 'ok'
-              save_data(data, chat_db)
-              for k,sticker_hash in pairs(redis:keys('mer_sticker:'..gid..':*')) do
-                redis:del(sticker_hash)
-              end
-              reply_msg(msg.id, 'Sticker restriction has been disabled.\n'
-                  ..'Previous infringements record has been cleared.', ok_cb, true)
-            end
-          end
-        end
-
-        -- Arabic settings
-        if matches[1] == 'arabic' then
-          if matches[2] == 'warn' then
-            if data.lock.arabic ~= 'warn' then
-              data.lock.arabic = 'warn'
-              save_data(data, chat_db)
-            end
-            reply_msg(msg.id, 'This group does not allow Arabic script.\n'
-                ..'Users will be warned first, then kicked for second infringements.', ok_cb, true)
-          end
-          if matches[2] == 'kick' then
-            if data.lock.arabic ~= 'kick' then
-              data.lock.arabic = 'kick'
-              save_data(data, chat_db)
-            end
-            reply_msg(msg.id, 'Users will now be removed automatically for posting Arabic script.', ok_cb, true)
-          end
-          if matches[2] == 'ok' then
-            if data.lock.arabic == 'ok' then
-              reply_msg(msg.id, 'Arabic posting restriction is not enabled.', ok_cb, true)
-            else
-              data.lock.arabic = 'ok'
-              save_data(data, chat_db)
-              redis:del('mer_arabic')
---              for k,arabic_hash in pairs(redis:keys('mer_arabic:'..gid..':*')) do
---                redis:del(arabic_hash)
---              end
-              reply_msg(msg.id, 'Users will no longer be removed for posting Arabic script.', ok_cb, true)
-            end
-          end
-        end
-
         -- Set custom welcome message
         if matches[1] == 'setwelcome' and matches[2] then
           data.welcome.msg = matches[2]
@@ -1537,6 +1448,33 @@ do
                 reply_msg(msg.id, 'Group is locked from bots.', ok_cb, true)
               end
             end
+	    if matches[3] == 'sticker' then
+              if data.sticker == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from sticker.', ok_cb, true)
+              else
+                data.sticker = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is locked from sticker.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'arabic' then
+              if data.lock.arabic == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from arabic.', ok_cb, true)
+              else
+                data.lock.arabic = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is locked from arabic.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'links' then
+              if data.lock.links == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from links posting.', ok_cb, true)
+              else
+                data.lock.links = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Links posting has been locked.', ok_cb, true)
+              end
+            end
             if matches[3] == 'name' then
               if data.lock.name == 'yes' then
                 reply_msg(msg.id, 'Group name is already locked', ok_cb, true)
@@ -1576,6 +1514,33 @@ do
                 data.lock.bot = 'no'
                 save_data(data, chat_db)
                 reply_msg(msg.id, 'Group is open for bots.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'sticker' then
+              if data.sticker == 'no' then
+                reply_msg(msg.id, 'sticker are allowed to enter group.', ok_cb, true)
+              else
+                data.sticker = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for sticker.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'arabic' then
+              if data.lock.arabic == 'no' then
+                reply_msg(msg.id, 'arabic are allowed to enter group.', ok_cb, true)
+              else
+                data.lock.arabic = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for arabic.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'links' then
+              if data.lock.links == 'no' then
+                reply_msg(msg.id, 'Links posting is already open.', ok_cb, true)
+              else
+                data.lock.links = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for links posting.', ok_cb, true)
               end
             end
             if matches[3] == 'name' then
@@ -1660,16 +1625,19 @@ do
       if is_mod(msg, gid, uid) then
         -- Print group settings
         if matches[1] == 'group' and matches[2] == 'settings' then
-          local text = 'Settings for *'..msg.to.title..'*\n'
-                ..' Arabic message = `'..data.lock.arabic..'`\n'
-                ..'Lock</b> <i>bot</i> = `'..data.lock.bot..'`\n'
-                ..'<b>Lock</b> name = `'..data.lock.name..'`\n'
-                ..'Lock photo = `'..data.lock.photo..'`\n'
-                ..'<b>Lock</b> member = `'..data.lock.member..'`\n'
-                ..'*-* Spam protection = `'..data.antispam..'`\n'
-                ..'*-* Sticker policy = `'..data.sticker..'`\n'
-                ..'*-* Welcome message = `'..data.welcome.to..'`\n'
-          send_api_msg(msg, get_receiver_api(msg), text, true, 'markdown')
+          local text = '<code>➖➖➖➖➖➖➖➖➖➖\n⚙Settings for </code><b>'..msg.to.title..'⚙</b>\n➖➖➖➖➖➖➖➖➖➖\n'
+                ..'🔷<b>Lock</b> <i>arabic</i> = '..data.lock.arabic..'\n'
+                ..'🔷<b>Lock</b> <i>bot</i> = '..data.lock.bot..'\n'
+		..'🔷<b>Lock</b> <i>links</i> = '..data.lock.links..'\n'
+                ..'🔷<b>Lock</b> <i>name</i> = '..data.lock.name..'\n'
+                ..'🔷<b>Lock</b> <i>photo</i> = '..data.lock.photo..'\n'
+                ..'🔷<b>Lock</b> <i>member</i> = '..data.lock.member..'\n'
+                ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
+                ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
+                ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n'
+	  local text = string.gsub(text,'yes','✅')
+	  local text = string.gsub(text,'no','❌')
+          send_api_msg(msg, get_receiver_api(msg), text, true, 'html')
         end
 
         -- Invite user by {id|username|name|reply}
@@ -1946,7 +1914,6 @@ do
       '^!(about)$',
       '^!(adminlist)$', '^!(adminlist) (%d+)$',
       '^!(antispam) (%a+)$',
-      '^!(arabic) (%a+)$',
       '^!(autoleave) (%a+)$',
       '^!(banlist)$',
       '^!(bc) (%d+) (.*)$',
@@ -1976,7 +1943,6 @@ do
       '^!(setrules) (.*)$',
       '^!(setwelcome) (.*)$',
       '^!(resetwelcome)$',
-      '^!(sticker) (%a+)$',
       '^!(sudolist)$',
       '^!(unwhitelist) (chat) (%d+)$',
       '^!(version)$',
