@@ -2056,8 +2056,7 @@ do
 
       -- print merbot version
       if matches[1] == "version" then
-        reply_msg(msg.id, 'Merbot\n'..VERSION..'\nGitHub: '..bot_repo..'\n'
-            ..'License: GNU GPL v2', ok_cb, true)
+        send_api_msg(msg, get_receiver_api(msg), '<b>bot version</b><code> 2.0</code>', true, 'html')
       end
 
     else -- if in private message
