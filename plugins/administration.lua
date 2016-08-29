@@ -414,6 +414,7 @@ do
 	  links = 'yes',
 	  fwd = 'no',
 	  reply = 'no',
+	  tgservice = 'yes',
 	  text = 'no',
 	  document = 'no',
 	  video = 'no',
@@ -730,7 +731,7 @@ do
     local receiver = get_receiver(msg)
     local data = load_data(_config.administration[gid])
 
-    if data.lock.all == 'yes' and not is_mod(msg, gid, uid) then
+    if msg.service and data.lock.tgservice == 'yes' then
 	 delete_msg(msg.id,ok_cb,false)
     end
     if msg.reply_id and not is_mod(msg, gid, uid) then
@@ -894,7 +895,7 @@ do
               welcomes = data.welcome.msg..'\n'
             -- If no custom welcome message defined, use this default
             else
-              welcomes = 'Welcome '..greet_uname..''..new_member..'</b> <code>['..userid..']</code>\nYou are in group <b>'..msg.to.title..'</b>\n'
+              welcomes = 'Welcome '..greet_uname..'<b>'..new_member..' </b><code>['..userid..']</code>\nYou are in group <b>'..msg.to.title..'</b>\n'
             end
             if data.welcome.to == 'group' then
               receiver_api = get_receiver_api(msg)
@@ -1630,6 +1631,15 @@ do
                 reply_msg(msg.id, 'Group is locked from bots.', ok_cb, true)
               end
             end
+	    if matches[3] == 'tgservice' then
+              if data.lock.tgservice == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from tgservice.', ok_cb, true)
+              else
+                data.lock.tgservice = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is locked from tgservice.', ok_cb, true)
+              end
+            end
 	    if matches[3] == 'reply' then
               if data.lock.reply == 'yes' then
                 reply_msg(msg.id, 'Group is already locked from reply.', ok_cb, true)
@@ -1723,6 +1733,15 @@ do
                 data.lock.bot = 'no'
                 save_data(data, chat_db)
                 reply_msg(msg.id, 'Group is open for bots.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'tgservice' then
+              if data.lock.tgservice == 'no' then
+                reply_msg(msg.id, 'tgservice are allowed to enter group.', ok_cb, true)
+              else
+                data.lock.tgservice = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for tgservice.', ok_cb, true)
               end
             end
 	    if matches[3] == 'reply' then
@@ -1871,6 +1890,7 @@ do
                 ..'🔷<b>Lock</b> <i>member</i> = '..data.lock.member..'\n'
 		..'🔷<b>Lock</b> <i>forward</i> = '..data.lock.fwd..'\n'
 		..'🔷<b>Lock</b> <i>reply</i> = '..data.lock.reply..'\n'
+		..'🔷<b>Lock</b> <i>tgservice</i> = '..data.lock.tgservice..'\n'
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
                 ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
                 ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
