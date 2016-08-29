@@ -409,8 +409,18 @@ do
           bot = 'no',
           member = 'no',
           name = 'yes',
+          tags = 'no',
           photo = 'yes',
 	  links = 'yes',
+	  fwd = 'no',
+	  reply = 'no',
+	  text = 'no',
+	  document = 'no',
+	  video = 'no',
+ 	  audio = 'no',
+	  gif = 'no',
+	  dphoto = 'no',
+	  all = 'no',
         },
         members = {},
         moderators = {},
@@ -718,9 +728,34 @@ do
     local uid = msg.from.peer_id
     local gid = msg.to.peer_id
     local receiver = get_receiver(msg)
+    local data = load_data(_config.administration[gid])
 
+    if data.lock.all == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+    end
+    if msg.reply_id and not is_mod(msg, gid, uid) then
+	if data.lock.reply == 'yes' then
+		delete_msg(msg.id,ok_cb,false)
+	end
+    end
+    if msg.fwd_from and not is_mod(msg, gid, uid) then
+	if data.lock.fwd == 'yes' then
+		delete_msg(msg.id,ok_cb,false)
+	end
+	if msg.fwd_from.title then
+		if data.lock.links == 'yes' then
+			if msg.fwd_from.title:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.fwd_from.title:match("[Hh][Tt][Tt][Pp]") then
+				delete_msg(msg.id,ok_cb,false)
+			end
+		end
+		if data.lock.tags == 'yes' then
+			if msg.fwd_from.title:match("@") or msg.fwd_from.title:match("#") then
+				delete_msg(msg.id,ok_cb,false)
+			end
+		end
+	end
+    end
     if msg.text then
-      local data = load_data(_config.administration[gid])
       -- If sender is sudo then re-enable the channel
       if msg.text == '!channel enable' and is_sudo(uid) then
         _config.disabled_channels[receiver] = false
@@ -728,6 +763,10 @@ do
       end
       if _config.disabled_channels[receiver] == true then
         msg.text = ''
+      end
+      --check tags
+      if (msg.text:match("@") or msg.text:match("#")) and not is_mod(msg, gid, uid) and data.lock.tags== 'yes' then
+            delete_msg(msg.id,ok_cb,false)
       end
       --check link
       if (msg.text:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.text:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) and data.lock.links == 'yes' then
@@ -757,7 +796,6 @@ do
         end
       end
     end
-
     -- If banned user is talking
     if is_chat_msg(msg) then
       if is_globally_banned(uid) then
@@ -969,6 +1007,18 @@ do
       if is_mod(msg, gid, uid) and msg.media.type == 'photo' then
         if data.set.photo == 'waiting' then
           load_photo(msg.id, set_group_photo, {msg=msg, data=data})
+        end
+      end
+      --check tags
+      if (msg.media.caption:match("@") or msg.media.caption:match("#")) and not is_mod(msg, gid, uid) then
+        if data.lock.tags == 'yes' then
+          delete_msg(msg.id,ok_cb,false)
+        end
+      end
+      --check links
+      if (msg.media.caption:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.media.caption:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) then
+        if data.lock.links == 'yes' then
+          delete_msg(msg.id,ok_cb,false)
         end
       end
       -- If user is sending sticker
@@ -1437,6 +1487,138 @@ do
         end
 
         if matches[1] == 'group' or matches[1] == 'gp' then
+          --mute setting
+	  if matches[2] == 'mute' then
+	    if matches[3] == 'text' then
+              if data.lock.text == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from text</i>', true, 'html')
+              else
+                data.lock.text = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from text</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'document' then
+              if data.lock.document == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from document</i>', true, 'html')
+              else
+                data.lock.document = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from document</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'photo' then
+              if data.lock.dphoto == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from photo</i>', true, 'html')
+              else
+                data.lock.dphoto = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from photo</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'video' then
+              if data.lock.video == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from video</i>', true, 'html')
+              else
+                data.lock.video = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from video</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'gif' then
+              if data.lock.gif == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from gif</i>', true, 'html')
+              else
+                data.lock.gif = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from gif</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'audio' then
+              if data.lock.audio == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from audio</i>', true, 'html')
+              else
+                data.lock.audio = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from audio</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'all' then
+              if data.lock.all == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from all</i>', true, 'html')
+              else
+                data.lock.all = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from all</i>', true, 'html')
+              end
+            end
+          end
+	  --unmute settings
+	  if matches[2] == 'unmute' then
+	    if matches[3] == 'text' then
+              if data.lock.text == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>text are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.text = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for text</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'document' then
+              if data.lock.document == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>document are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.document = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for document</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'photo' then
+              if data.lock.dphoto == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>photo are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.dphoto = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for photo</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'video' then
+              if data.lock.video == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>video are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.video = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for video</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'gif' then
+              if data.lock.gif == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>gif are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.gif = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for gif</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'audio' then
+              if data.lock.audio == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>audio are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.audio = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for audio</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'all' then
+              if data.lock.all == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>all are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.all = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for all</i>', true, 'html')
+              end
+            end
+	  end
           -- Lock {bot|name|member|photo|sticker}
           if matches[2] == 'lock' then
             if matches[3] == 'bot' then
@@ -1446,6 +1628,33 @@ do
                 data.lock.bot = 'yes'
                 save_data(data, chat_db)
                 reply_msg(msg.id, 'Group is locked from bots.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'reply' then
+              if data.lock.reply == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from reply.', ok_cb, true)
+              else
+                data.lock.reply = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is locked from reply.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'fwd' then
+              if data.lock.fwd == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from forward.', ok_cb, true)
+              else
+                data.lock.fwd = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is locked from forward.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'tags' then
+              if data.lock.tags == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from tags.', ok_cb, true)
+              else
+                data.lock.tags = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is locked from tags.', ok_cb, true)
               end
             end
 	    if matches[3] == 'sticker' then
@@ -1514,6 +1723,33 @@ do
                 data.lock.bot = 'no'
                 save_data(data, chat_db)
                 reply_msg(msg.id, 'Group is open for bots.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'reply' then
+              if data.lock.reply == 'no' then
+                reply_msg(msg.id, 'reply are allowed to enter group.', ok_cb, true)
+              else
+                data.lock.reply = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for reply.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'fwd' then
+              if data.lock.fwd == 'no' then
+                reply_msg(msg.id, 'forward are allowed to enter group.', ok_cb, true)
+              else
+                data.lock.fwd = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for forward.', ok_cb, true)
+              end
+            end
+            if matches[3] == 'tags' then
+              if data.lock.tags == 'no' then
+                reply_msg(msg.id, 'tags are allowed to enter group.', ok_cb, true)
+              else
+                data.lock.tags = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for tags.', ok_cb, true)
               end
             end
 	    if matches[3] == 'sticker' then
@@ -1628,13 +1864,23 @@ do
           local text = '<code>➖➖➖➖➖➖➖➖➖➖\n⚙Settings for </code><b>'..msg.to.title..'⚙</b>\n➖➖➖➖➖➖➖➖➖➖\n'
                 ..'🔷<b>Lock</b> <i>arabic</i> = '..data.lock.arabic..'\n'
                 ..'🔷<b>Lock</b> <i>bot</i> = '..data.lock.bot..'\n'
+                ..'🔷<b>Lock</b> <i>tags</i> = '..data.lock.tags..'\n'
 		..'🔷<b>Lock</b> <i>links</i> = '..data.lock.links..'\n'
                 ..'🔷<b>Lock</b> <i>name</i> = '..data.lock.name..'\n'
                 ..'🔷<b>Lock</b> <i>photo</i> = '..data.lock.photo..'\n'
                 ..'🔷<b>Lock</b> <i>member</i> = '..data.lock.member..'\n'
+		..'🔷<b>Lock</b> <i>forward</i> = '..data.lock.fwd..'\n'
+		..'🔷<b>Lock</b> <i>reply</i> = '..data.lock.reply..'\n'
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
                 ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
-                ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n'
+                ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
+                ..'🔷<b>Mute</b> <i>text</i> = '..data.lock.text..'\n'
+		..'🔷<b>Mute</b> <i>document</i> = '..data.lock.document..'\n'
+		..'🔷<b>Mute</b> <i>gif</i> = '..data.lock.gif..'\n'
+		..'🔷<b>Mute</b> <i>video</i> = '..data.lock.video..'\n'
+		..'🔷<b>Mute</b> <i>photo</i> = '..data.lock.dphoto..'\n'
+		..'🔷<b>Mute</b> <i>audio</i> = '..data.lock.audio..'\n'
+		..'🔷<b>Mute</b> <i>all</i> = '..data.lock.all..'\n➖➖➖➖➖➖➖➖➖➖\nBy Phoenix'
 	  local text = string.gsub(text,'yes','✅')
 	  local text = string.gsub(text,'no','❌')
           send_api_msg(msg, get_receiver_api(msg), text, true, 'html')
@@ -1965,6 +2211,8 @@ do
       '^!(demod)$', '^!(demod) (@)(%g+)$', '^!(demod)(%s)(%d+)$',
       '^!(grem)$', '^!(grem) (%d+)$', '^!(gremove)$', '^!(gremove) (%d+)$', '^!(remgroup)$', '^!(remgroup) (%d+)$',
       '^!(group) (lock) (%a+)$', '^!(gp) (lock) (%a+)$',
+      '^!(group) (unmute) (%a+)$', '^!(gp) (unmute) (%a+)$',
+      '^!(group) (mute) (%a+)$', '^!(gp) (mute) (%a+)$',
       '^!(group) (settings)$', '^!(gp) (settings)$',
       '^!(group) (unlock) (%a+)$', '^!(gp) (unlock) (%a+)$',
       '^!(invite)$', '^!(invite) (@)(%g+)$', '^!(invite)(%s)(%g+)$',
