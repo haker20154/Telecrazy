@@ -408,13 +408,14 @@ do
           arabic = 'no',
           bot = 'no',
           member = 'no',
-          name = 'yes',
+          name = 'no',
           tags = 'no',
-          photo = 'yes',
+          photo = 'no',
 	  links = 'yes',
 	  fwd = 'no',
 	  reply = 'no',
 	  tgservice = 'yes',
+	  contact = 'no',
 	  text = 'no',
 	  document = 'no',
 	  video = 'no',
@@ -1000,7 +1001,6 @@ do
     end
 
     if msg.media and _config.administration[gid] then
-      local data = load_data(_config.administration[gid])
       if not msg.text then
         msg.text = '['..msg.media.type..']'
       end
@@ -1009,6 +1009,9 @@ do
         if data.set.photo == 'waiting' then
           load_photo(msg.id, set_group_photo, {msg=msg, data=data})
         end
+      end
+      if msg.media.type:match("contact") and data.lock.contact == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
       end
       --check tags
       if (msg.media.caption:match("@") or msg.media.caption:match("#")) and not is_mod(msg, gid, uid) then
@@ -1631,6 +1634,15 @@ do
                 reply_msg(msg.id, 'Group is locked from bots.', ok_cb, true)
               end
             end
+	    if matches[3] == 'contact' then
+              if data.lock.contact == 'yes' then
+                reply_msg(msg.id, 'Group is already locked from contact.', ok_cb, true)
+              else
+                data.lock.contact = 'yes'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is locked from contact.', ok_cb, true)
+              end
+            end
 	    if matches[3] == 'tgservice' then
               if data.lock.tgservice == 'yes' then
                 reply_msg(msg.id, 'Group is already locked from tgservice.', ok_cb, true)
@@ -1733,6 +1745,15 @@ do
                 data.lock.bot = 'no'
                 save_data(data, chat_db)
                 reply_msg(msg.id, 'Group is open for bots.', ok_cb, true)
+              end
+            end
+	    if matches[3] == 'contact' then
+              if data.lock.contact == 'no' then
+                reply_msg(msg.id, 'contact are allowed to enter group.', ok_cb, true)
+              else
+                data.lock.contact = 'no'
+                save_data(data, chat_db)
+                reply_msg(msg.id, 'Group is open for contact.', ok_cb, true)
               end
             end
 	    if matches[3] == 'tgservice' then
@@ -1891,6 +1912,7 @@ do
 		..'🔷<b>Lock</b> <i>forward</i> = '..data.lock.fwd..'\n'
 		..'🔷<b>Lock</b> <i>reply</i> = '..data.lock.reply..'\n'
 		..'🔷<b>Lock</b> <i>tgservice</i> = '..data.lock.tgservice..'\n'
+		..'🔷<b>Lock</b> <i>contact</i> = '..data.lock.contact..'\n'
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
                 ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
                 ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
@@ -2200,6 +2222,7 @@ do
       '^!(modlist)$', '^!(modlist) (%d+)$',
       '^!(ownerlist)$', '^!(ownerlist) (%d+)$',
       '^!(rules)$',
+      '^!(hi)$',
       '^!(setabout) (.*)$',
       '^!(setname) (.*)$',
       '^!(setphoto)$',
