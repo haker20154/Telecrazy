@@ -2222,7 +2222,6 @@ do
       '^!(modlist)$', '^!(modlist) (%d+)$',
       '^!(ownerlist)$', '^!(ownerlist) (%d+)$',
       '^!(rules)$',
-      '^!(hi)$',
       '^!(setabout) (.*)$',
       '^!(setname) (.*)$',
       '^!(setphoto)$',
