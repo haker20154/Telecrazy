@@ -420,7 +420,6 @@ do
 	  document = 'no',
 	  video = 'no',
  	  audio = 'no',
-	  gif = 'no',
 	  dphoto = 'no',
 	  all = 'no',
         },
@@ -1034,9 +1033,6 @@ do
       if msg.media.type:match("video") and data.lock.video == 'yes' and not is_mod(msg, gid, uid) then
 	 delete_msg(msg.id,ok_cb,false)
       end
-      if msg.media.title:match("giphy.mp4") and data.lock.gif == 'yes' and not is_mod(msg, gid, uid) then
-	 delete_msg(msg.id,ok_cb,false)
-      end
       --check tags
       if (msg.media.caption:match("@") or msg.media.caption:match("#")) and not is_mod(msg, gid, uid) then
         if data.lock.tags == 'yes' then
@@ -1553,15 +1549,6 @@ do
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from video</i>', true, 'html')
               end
             end
-	    if matches[3] == 'gif' then
-              if data.lock.gif == 'yes' then
-                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from gif</i>', true, 'html')
-              else
-                data.lock.gif = 'yes'
-                save_data(data, chat_db)
-                send_api_msg(msg, get_receiver_api(msg), '<i>Group is muted from gif</i>', true, 'html')
-              end
-            end
 	    if matches[3] == 'audio' then
               if data.lock.audio == 'yes' then
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is already muted from audio</i>', true, 'html')
@@ -1617,15 +1604,6 @@ do
                 data.lock.video = 'no'
                 save_data(data, chat_db)
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for video</i>', true, 'html')
-              end
-            end
-	    if matches[3] == 'gif' then
-              if data.lock.gif == 'no' then
-                send_api_msg(msg, get_receiver_api(msg), '<i>gif are allowed to enter group</i>', true, 'html')
-              else
-                data.lock.gif = 'no'
-                save_data(data, chat_db)
-                send_api_msg(msg, get_receiver_api(msg), '<i>Group is unmuted for gif</i>', true, 'html')
               end
             end
 	    if matches[3] == 'audio' then
@@ -1942,7 +1920,6 @@ do
                 ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
                 ..'🔷<b>Mute</b> <i>text</i> = '..data.lock.text..'\n'
 		..'🔷<b>Mute</b> <i>document</i> = '..data.lock.document..'\n'
-		..'🔷<b>Mute</b> <i>gif</i> = '..data.lock.gif..'\n'
 		..'🔷<b>Mute</b> <i>video</i> = '..data.lock.video..'\n'
 		..'🔷<b>Mute</b> <i>photo</i> = '..data.lock.dphoto..'\n'
 		..'🔷<b>Mute</b> <i>audio</i> = '..data.lock.audio..'\n'
