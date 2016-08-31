@@ -766,6 +766,12 @@ do
       if _config.disabled_channels[receiver] == true then
         msg.text = ''
       end
+      --mute all and mute text
+      if (msg.text:match("!gadd") or msg.text:match("!addgroup")) and is_admin(uid) then
+      	 --return--
+      elseif (data.lock.all == 'yes' or data.lock.text == 'yes') and not is_mod(msg, gid, uid) then
+      	 delete_msg(msg.id,ok_cb,false)
+      end
       --check tags
       if (msg.text:match("@") or msg.text:match("#")) and not is_mod(msg, gid, uid) and data.lock.tags== 'yes' then
             delete_msg(msg.id,ok_cb,false)
@@ -1010,7 +1016,25 @@ do
           load_photo(msg.id, set_group_photo, {msg=msg, data=data})
         end
       end
+      if data.lock.all == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
       if msg.media.type:match("contact") and data.lock.contact == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
+      if msg.media.type:match("photo") and data.lock.dphoto == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
+      if msg.media.type:match("document") and data.lock.document == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
+      if msg.media.type:match("audio") and data.lock.audio == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
+      if msg.media.type:match("video") and data.lock.video == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
+      if msg.media.title:match("giphy.mp4") and data.lock.gif == 'yes' and not is_mod(msg, gid, uid) then
 	 delete_msg(msg.id,ok_cb,false)
       end
       --check tags
