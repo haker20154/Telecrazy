@@ -416,6 +416,7 @@ do
 	  reply = 'no',
 	  tgservice = 'yes',
 	  contact = 'no',
+	  allset = 'no',
 	  text = 'no',
 	  document = 'no',
 	  video = 'no',
@@ -620,10 +621,10 @@ do
       save_data(data, filepath..'.lua')
       data.lock.photo = 'yes'
       save_data(data, filepath..'.lua')
-      reply_msg(msg.id, 'Photo saved!', ok_cb, false)
+      send_api_msg(msg, get_receiver_api(msg), '<b>Photo saved</b>', true, 'html')
     else
       print('Error downloading: '..msg.id)
-      reply_msg(msg.id, 'Error downloading this photo, please try again.', ok_cb, false)
+      send_api_msg(msg, get_receiver_api(msg), '<i>Error downloadin this photo try again</i>', true, 'html')
     end
   end
 
@@ -1629,223 +1630,277 @@ do
           if matches[2] == 'lock' then
             if matches[3] == 'bot' then
               if data.lock.bot == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from bots.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from bots</i>', true, 'html')
               else
                 data.lock.bot = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from bots.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from bots</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'all' then
+              if data.lock.allset == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from all</i>', true, 'html')
+              else
+                data.lock.allset = 'yes'
+		data.lock.bot = 'yes'
+		data.lock.contact = 'yes'
+		data.lock.tgservice = 'yes'
+		data.lock.reply = 'yes'
+		data.lock.fwd = 'yes'
+		data.lock.tags = 'yes'
+		data.lock.links = 'yes'
+		data.sticker = 'yes'
+		data.lock.arabic = 'yes'
+		data.lock.name = 'yes'
+		data.lock.member = 'yes'
+		data.set.photo = 'waiting'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from all.</i><b>--Please send a photo for lock photo now--</b>', true, 'html')
               end
             end
 	    if matches[3] == 'contact' then
               if data.lock.contact == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from contact.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from contact</i>', true, 'html')
               else
                 data.lock.contact = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from contact.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from contact</i>', true, 'html')
               end
             end
 	    if matches[3] == 'tgservice' then
               if data.lock.tgservice == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from tgservice.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from tgservice</i>', true, 'html')
               else
                 data.lock.tgservice = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from tgservice.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from tgservice</i>', true, 'html')
               end
             end
 	    if matches[3] == 'reply' then
               if data.lock.reply == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from reply.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from reply</i>', true, 'html')
               else
                 data.lock.reply = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from reply.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from reply</i>', true, 'html')
               end
             end
 	    if matches[3] == 'fwd' then
               if data.lock.fwd == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from forward.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from forward</i>', true, 'html')
               else
                 data.lock.fwd = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from forward.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from forward</i>', true, 'html')
               end
             end
 	    if matches[3] == 'tags' then
               if data.lock.tags == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from tags.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from tags</i>', true, 'html')
               else
                 data.lock.tags = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from tags.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from tags</i>', true, 'html')
               end
             end
 	    if matches[3] == 'sticker' then
               if data.sticker == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from sticker.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from sticker</i>', true, 'html')
               else
                 data.sticker = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from sticker.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from sticker</i>', true, 'html')
               end
             end
 	    if matches[3] == 'arabic' then
               if data.lock.arabic == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from arabic.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from arabic</i>', true, 'html')
               else
                 data.lock.arabic = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is locked from arabic.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from arabic</i>', true, 'html')
               end
             end
 	    if matches[3] == 'links' then
               if data.lock.links == 'yes' then
-                reply_msg(msg.id, 'Group is already locked from links posting.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from links</i>', true, 'html')
               else
                 data.lock.links = 'yes'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Links posting has been locked.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from links</i>', true, 'html')
               end
             end
             if matches[3] == 'name' then
               if data.lock.name == 'yes' then
-                reply_msg(msg.id, 'Group name is already locked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from name</i>', true, 'html')
               else
                 data.lock.name = 'yes'
                 save_data(data, chat_db)
                 data.set.name = msg.to.title
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group name has been locked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from name</i>', true, 'html')
               end
             end
             if matches[3] == 'member' then
               if data.lock.member == 'yes' then
-                reply_msg(msg.id, 'Group members are already locked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from member</i>', true, 'html')
               else
                 data.lock.member = 'yes'
                 save_data(data, chat_db)
               end
-              reply_msg(msg.id, 'Group members has been locked', ok_cb, true)
+              send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from member</i>', true, 'html')
             end
             if matches[3] == 'photo' then
               if data.lock.photo == 'yes' then
-                reply_msg(msg.id, 'Group photo is already locked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from photo</i>', true, 'html')
               else
                 data.set.photo = 'waiting'
                 save_data(data, chat_db)
+		send_api_msg(msg, get_receiver_api(msg), '<i>Please send me to group photo now</i>', true, 'html')
               end
-              reply_msg(msg.id, 'Please send me the group photo now', ok_cb, true)
             end
           end
           -- Unlock {bot|name|member|photo|sticker}
           if matches[2] == 'unlock' then
             if matches[3] == 'bot' then
               if data.lock.bot == 'no' then
-                reply_msg(msg.id, 'Bots are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Bots are allowed to enter group</i>', true, 'html')
               else
                 data.lock.bot = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for bots.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for bots</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'all' then
+              if data.lock.allset == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>all are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.allset = 'no'
+		data.lock.bot = 'no'
+		data.lock.contact = 'no'
+		data.lock.tgservice = 'no'
+		data.lock.reply = 'no'
+		data.lock.fwd = 'no'
+		data.lock.tags = 'no'
+		data.lock.links = 'no'
+		data.sticker = 'no'
+		data.lock.arabic = 'no'
+		data.lock.name = 'no'
+		data.lock.member = 'no'
+		data.lock.photo = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for all</i>', true, 'html')
               end
             end
 	    if matches[3] == 'contact' then
               if data.lock.contact == 'no' then
-                reply_msg(msg.id, 'contact are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>contact are allowed to enter group</i>', true, 'html')
               else
                 data.lock.contact = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for contact.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for contact</i>', true, 'html')
               end
             end
 	    if matches[3] == 'tgservice' then
               if data.lock.tgservice == 'no' then
-                reply_msg(msg.id, 'tgservice are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>tgservice are allowed to enter group</i>', true, 'html')
               else
                 data.lock.tgservice = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for tgservice.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for tgservice</i>', true, 'html')
               end
             end
 	    if matches[3] == 'reply' then
               if data.lock.reply == 'no' then
-                reply_msg(msg.id, 'reply are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>reply are allowed to enter group</i>', true, 'html')
               else
                 data.lock.reply = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for reply.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for reply</i>', true, 'html')
               end
             end
 	    if matches[3] == 'fwd' then
               if data.lock.fwd == 'no' then
-                reply_msg(msg.id, 'forward are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>forward are allowed to enter group</i>', true, 'html')
               else
                 data.lock.fwd = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for forward.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for forward</i>', true, 'html')
               end
             end
             if matches[3] == 'tags' then
               if data.lock.tags == 'no' then
-                reply_msg(msg.id, 'tags are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>tags are allowed to enter group</i>', true, 'html')
               else
                 data.lock.tags = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for tags.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for tags</i>', true, 'html')
               end
             end
 	    if matches[3] == 'sticker' then
               if data.sticker == 'no' then
-                reply_msg(msg.id, 'sticker are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>sticker are allowed to enter group</i>', true, 'html')
               else
                 data.sticker = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for sticker.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for sticker</i>', true, 'html')
               end
             end
 	    if matches[3] == 'arabic' then
               if data.lock.arabic == 'no' then
-                reply_msg(msg.id, 'arabic are allowed to enter group.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>arabic are allowed to enter group</i>', true, 'html')
               else
                 data.lock.arabic = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for arabic.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for arabic</i>', true, 'html')
               end
             end
 	    if matches[3] == 'links' then
               if data.lock.links == 'no' then
-                reply_msg(msg.id, 'Links posting is already open.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>links are allowed to enter group</i>', true, 'html')
               else
                 data.lock.links = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group is open for links posting.', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for links</i>', true, 'html')
               end
             end
             if matches[3] == 'name' then
               if data.lock.name == 'no' then
-                reply_msg(msg.id, 'Group name is already unlocked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>name are allowed to enter group</i>', true, 'html')
               else
                 data.lock.name = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group name has been unlocked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for name</i>', true, 'html')
               end
             end
             if matches[3] == 'member' then
               if data.lock.member == 'no' then
-                reply_msg(msg.id, 'Group members are not locked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>member are allowed to enter group</i>', true, 'html')
               else
                 data.lock.member = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group members has been unlocked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for member</i>', true, 'html')
               end
             end
             if matches[3] == 'photo' then
               if data.lock.photo == 'no' then
-                reply_msg(msg.id, 'Group photo is not locked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>photo group is already unlocked</i>', true, 'html')
               else
                 data.lock.photo = 'no'
+		data.lock.allset = 'no'
                 save_data(data, chat_db)
-                reply_msg(msg.id, 'Group photo has been unlocked', ok_cb, true)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for change photo</i>', true, 'html')
               end
             end
           end
@@ -1916,6 +1971,7 @@ do
 		..'🔷<b>Lock</b> <i>tgservice</i> = '..data.lock.tgservice..'\n'
 		..'🔷<b>Lock</b> <i>contact</i> = '..data.lock.contact..'\n'
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
+		..'🔷<b>Lock</b> <i>all</i> = '..data.lock.allset..'\n'
                 ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
                 ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
                 ..'🔷<b>Mute</b> <i>text</i> = '..data.lock.text..'\n'
