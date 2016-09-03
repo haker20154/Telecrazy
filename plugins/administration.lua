@@ -413,6 +413,7 @@ do
           photo = 'no',
 	  links = 'yes',
 	  fwd = 'no',
+	  english = 'no',
 	  reply = 'no',
 	  tgservice = 'yes',
 	  contact = 'no',
@@ -770,6 +771,12 @@ do
       if (msg.text:match("!gadd") or msg.text:match("!addgroup")) and is_admin(uid) then
       	 --return--
       elseif (data.lock.all == 'yes' or data.lock.text == 'yes') and not is_mod(msg, gid, uid) then
+      	 delete_msg(msg.id,ok_cb,false)
+      end
+      --lock english
+      if is_admin(uid) then
+      	 --return--
+      elseif msg.text:match("[qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM]") and (data.lock.all == 'yes' or data.lock.text == 'yes' or data.lock.english == 'yes') and not is_mod(msg, gid, uid) then
       	 delete_msg(msg.id,ok_cb,false)
       end
       --check tags
@@ -1637,6 +1644,15 @@ do
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from bots</i>', true, 'html')
               end
             end
+	    if matches[3] == 'english' then
+              if data.lock.english == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from english</i>', true, 'html')
+              else
+                data.lock.english = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from english</i>', true, 'html')
+              end
+            end
 	    if matches[3] == 'all' then
               if data.lock.allset == 'yes' then
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from all</i>', true, 'html')
@@ -1648,6 +1664,7 @@ do
 		data.lock.reply = 'yes'
 		data.lock.fwd = 'yes'
 		data.lock.tags = 'yes'
+		data.lock.english = 'yes'
 		data.lock.links = 'yes'
 		data.sticker = 'yes'
 		data.lock.arabic = 'yes'
@@ -1772,6 +1789,16 @@ do
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for bots</i>', true, 'html')
               end
             end
+	    if matches[3] == 'english' then
+              if data.lock.english == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>english are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.english = 'no'
+		data.lock.allset = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for english</i>', true, 'html')
+              end
+            end
 	    if matches[3] == 'all' then
               if data.lock.allset == 'no' then
                 send_api_msg(msg, get_receiver_api(msg), '<i>all are allowed to enter group</i>', true, 'html')
@@ -1783,6 +1810,7 @@ do
 		data.lock.reply = 'no'
 		data.lock.fwd = 'no'
 		data.lock.tags = 'no'
+		data.lock.english = 'no'
 		data.lock.links = 'no'
 		data.sticker = 'no'
 		data.lock.arabic = 'no'
@@ -1971,6 +1999,7 @@ do
 		..'🔷<b>Lock</b> <i>tgservice</i> = '..data.lock.tgservice..'\n'
 		..'🔷<b>Lock</b> <i>contact</i> = '..data.lock.contact..'\n'
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
+		..'🔷<b>Lock</b> <i>english</i> = '..data.lock.english..'\n'
 		..'🔷<b>Lock</b> <i>all</i> = '..data.lock.allset..'\n'
                 ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
                 ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
