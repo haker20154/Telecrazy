@@ -416,6 +416,7 @@ do
 	  english = 'no',
 	  reply = 'no',
 	  tgservice = 'yes',
+	  strict = 'no',
 	  contact = 'no',
 	  allset = 'no',
 	  text = 'no',
@@ -751,9 +752,25 @@ do
 				delete_msg(msg.id,ok_cb,false)
 			end
 		end
+		if data.lock.strict == 'yes' then
+			if msg.fwd_from.title:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.fwd_from.title:match("[Hh][Tt][Tt][Pp]") then
+				if data.lock.links == 'no' then
+					delete_msg(msg.id,ok_cb,false)
+				end
+				kick_user(msg, gid, uid)
+			end
+		end
 		if data.lock.tags == 'yes' then
 			if msg.fwd_from.title:match("@") or msg.fwd_from.title:match("#") then
 				delete_msg(msg.id,ok_cb,false)
+			end
+		end
+		if data.lock.strict == 'yes' then
+			if msg.fwd_from.title:match("@") or msg.fwd_from.title:match("#") then
+				if data.lock.tags == 'no' then
+					delete_msg(msg.id,ok_cb,false)
+				end
+				kick_user(msg, gid, uid)
 			end
 		end
 	end
@@ -783,9 +800,21 @@ do
       if (msg.text:match("@") or msg.text:match("#")) and not is_mod(msg, gid, uid) and data.lock.tags== 'yes' then
             delete_msg(msg.id,ok_cb,false)
       end
+      if (msg.text:match("@") or msg.text:match("#")) and not is_mod(msg, gid, uid) and data.lock.strict== 'yes' then
+	    if data.lock.tags == 'no' then
+            	delete_msg(msg.id,ok_cb,false)
+	    end
+	    kick_user(msg, gid, uid)
+      end
       --check link
       if (msg.text:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.text:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) and data.lock.links == 'yes' then
             delete_msg(msg.id,ok_cb,false)
+      end
+      if (msg.text:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.text:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) and data.lock.strict == 'yes' then
+	    if data.lock.links == 'no' then
+            	delete_msg(msg.id,ok_cb,false)
+	    end
+	    kick_user(msg, gid, uid)
       end
       -- Anti arabic
       if msg.text:match('([\216-\219][\128-\191])') and _config.administration[gid] then
@@ -1046,11 +1075,23 @@ do
         if data.lock.tags == 'yes' then
           delete_msg(msg.id,ok_cb,false)
         end
+	if data.lock.strict == 'yes' then
+	   if data.lock.tags == 'no' then
+	      delete_msg(msg.id,ok_cb,false)
+	   end
+	   kick_user(msg, gid, uid)
+        end
       end
       --check links
       if (msg.media.caption:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.media.caption:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) then
         if data.lock.links == 'yes' then
           delete_msg(msg.id,ok_cb,false)
+        end
+        if data.lock.strict == 'yes' then
+	   if data.lock.links == 'no' then
+	      delete_msg(msg.id,ok_cb,false)
+	   end
+	   kick_user(msg, gid, uid)
         end
       end
       -- If user is sending sticker
@@ -1644,6 +1685,15 @@ do
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from bots</i>', true, 'html')
               end
             end
+	    if matches[3] == 'strict' then
+              if data.lock.strict == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from strict</i>', true, 'html')
+              else
+                data.lock.strict = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from strict</i>', true, 'html')
+              end
+            end
 	    if matches[3] == 'english' then
               if data.lock.english == 'yes' then
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from english</i>', true, 'html')
@@ -1787,6 +1837,16 @@ do
 		data.lock.allset = 'no'
                 save_data(data, chat_db)
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for bots</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'strict' then
+              if data.lock.strict == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>strict are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.strict = 'no'
+		data.lock.allset = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for strict</i>', true, 'html')
               end
             end
 	    if matches[3] == 'english' then
@@ -1986,7 +2046,7 @@ do
       if is_mod(msg, gid, uid) then
         -- Print group settings
         if matches[1] == 'group' and matches[2] == 'settings' then
-          local text = '<code>➖➖➖➖➖➖➖➖➖➖\n⚙Settings for </code><b>'..msg.to.title..'⚙</b>\n➖➖➖➖➖➖➖➖➖➖\n'
+          local text = '<code>➖➖➖➖➖➖➖➖➖➖\n⚙Message settings </code><b>'..msg.to.title..'⚙</b>\n➖➖➖➖➖➖➖➖➖➖\n'
                 ..'🔷<b>Lock</b> <i>arabic</i> = '..data.lock.arabic..'\n'
                 ..'🔷<b>Lock</b> <i>bot</i> = '..data.lock.bot..'\n'
                 ..'🔷<b>Lock</b> <i>tags</i> = '..data.lock.tags..'\n'
@@ -1999,8 +2059,9 @@ do
 		..'🔷<b>Lock</b> <i>tgservice</i> = '..data.lock.tgservice..'\n'
 		..'🔷<b>Lock</b> <i>contact</i> = '..data.lock.contact..'\n'
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
-		..'🔷<b>Lock</b> <i>english</i> = '..data.lock.english..'\n'
+		..'🔷<b>Lock</b> <i>english</i> = '..data.lock.english..'\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙More settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
 		..'🔷<b>Lock</b> <i>all</i> = '..data.lock.allset..'\n'
+		..'🔷<b>Lock</b> <i>strict</i> = '..data.lock.strict..'\n'
                 ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
                 ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
                 ..'🔷<b>Mute</b> <i>text</i> = '..data.lock.text..'\n'
@@ -2008,7 +2069,7 @@ do
 		..'🔷<b>Mute</b> <i>video</i> = '..data.lock.video..'\n'
 		..'🔷<b>Mute</b> <i>photo</i> = '..data.lock.dphoto..'\n'
 		..'🔷<b>Mute</b> <i>audio</i> = '..data.lock.audio..'\n'
-		..'🔷<b>Mute</b> <i>all</i> = '..data.lock.all..'\n➖➖➖➖➖➖➖➖➖➖\nBy Phoenix'
+		..'🔷<b>Mute</b> <i>all</i> = '..data.lock.all..'\n➖➖➖➖➖➖➖➖➖➖\n<b>By Eagle</b>'
 	  local text = string.gsub(text,'yes','✅')
 	  local text = string.gsub(text,'no','❌')
           send_api_msg(msg, get_receiver_api(msg), text, true, 'html')
