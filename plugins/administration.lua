@@ -415,6 +415,9 @@ do
 	  fwd = 'no',
 	  english = 'no',
 	  reply = 'no',
+	  media = 'no',
+	  number = 'no',
+	  opera = 'no',
 	  tgservice = 'yes',
 	  strict = 'no',
 	  contact = 'no',
@@ -790,6 +793,14 @@ do
       elseif (data.lock.all == 'yes' or data.lock.text == 'yes') and not is_mod(msg, gid, uid) then
       	 delete_msg(msg.id,ok_cb,false)
       end
+      --lock number
+      if msg.text:match("[1234567890]") and data.lock.number == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
+      --lock operator
+      if (msg.text:match("[Ii][Rr][Aa][Nn][Cc][Ee][Ll][Ll]") or msg.text:match("[Rr][Ii][Gg][Hh][Tt][Ee][Ll]") or msg.text:match("[Mm][Cc][Ii]") or msg.text:match("[Tt][Aa][Ll][Ii][Yy][Aa]") or msg.text:match("[Tt][Aa][Ll][Ii][Aa]") or msg.text:match("ایرانسل") or msg.text:match("رایتل") or msg.text:match("همراه اول") or msg.text:match("تالیا")) and data.lock.opera == 'yes' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+      end
       --lock english
       if is_admin(uid) then
       	 --return--
@@ -1052,7 +1063,7 @@ do
           load_photo(msg.id, set_group_photo, {msg=msg, data=data})
         end
       end
-      if data.lock.all == 'yes' and not is_mod(msg, gid, uid) then
+      if (data.lock.all == 'yes' or data.lock.media == 'yes') and not is_mod(msg, gid, uid) then
 	 delete_msg(msg.id,ok_cb,false)
       end
       if msg.media.type:match("contact") and data.lock.contact == 'yes' and not is_mod(msg, gid, uid) then
@@ -1685,6 +1696,33 @@ do
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from bots</i>', true, 'html')
               end
             end
+	    if matches[3] == 'number' then
+              if data.lock.number == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from number</i>', true, 'html')
+              else
+                data.lock.number = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from number</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'operator' then
+              if data.lock.opera == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from operator</i>', true, 'html')
+              else
+                data.lock.opera = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from operator</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'media' then
+              if data.lock.media == 'yes' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from media</i>', true, 'html')
+              else
+                data.lock.media = 'yes'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from media</i>', true, 'html')
+              end
+            end
 	    if matches[3] == 'strict' then
               if data.lock.strict == 'yes' then
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from strict</i>', true, 'html')
@@ -1715,7 +1753,10 @@ do
 		data.lock.fwd = 'yes'
 		data.lock.tags = 'yes'
 		data.lock.english = 'yes'
+		data.lock.opera = 'yes'
+		data.lock.number = 'yes'
 		data.lock.links = 'yes'
+		data.lock.media = 'yes'
 		data.sticker = 'yes'
 		data.lock.arabic = 'yes'
 		data.lock.name = 'yes'
@@ -1839,6 +1880,36 @@ do
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for bots</i>', true, 'html')
               end
             end
+	    if matches[3] == 'number' then
+              if data.lock.number == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>number are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.number = 'no'
+		data.lock.allset = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for number</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'operator' then
+              if data.lock.opera == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>operator are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.opera = 'no'
+		data.lock.allset = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for operator</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'media' then
+              if data.lock.media == 'no' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>media are allowed to enter group</i>', true, 'html')
+              else
+                data.lock.media = 'no'
+		data.lock.allset = 'no'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is open for media</i>', true, 'html')
+              end
+            end
 	    if matches[3] == 'strict' then
               if data.lock.strict == 'no' then
                 send_api_msg(msg, get_receiver_api(msg), '<i>strict are allowed to enter group</i>', true, 'html')
@@ -1872,6 +1943,9 @@ do
 		data.lock.tags = 'no'
 		data.lock.english = 'no'
 		data.lock.links = 'no'
+		data.lock.opera = 'no'
+		data.lock.number = 'no'
+		data.lock.media = 'no'
 		data.sticker = 'no'
 		data.lock.arabic = 'no'
 		data.lock.name = 'no'
@@ -2058,6 +2132,9 @@ do
 		..'🔷<b>Lock</b> <i>reply</i> = '..data.lock.reply..'\n'
 		..'🔷<b>Lock</b> <i>tgservice</i> = '..data.lock.tgservice..'\n'
 		..'🔷<b>Lock</b> <i>contact</i> = '..data.lock.contact..'\n'
+		..'🔷<b>Lock</b> <i>media</i> = '..data.lock.media..'\n'
+		..'🔷<b>Lock</b> <i>operator</i> = '..data.lock.opera..'\n'
+		..'🔷<b>Lock</b> <i>number</i> = '..data.lock.number..'\n'
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
 		..'🔷<b>Lock</b> <i>english</i> = '..data.lock.english..'\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙More settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
 		..'🔷<b>Lock</b> <i>all</i> = '..data.lock.allset..'\n'
