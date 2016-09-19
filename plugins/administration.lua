@@ -419,7 +419,6 @@ do
 	  number = 'no',
 	  opera = 'no',
 	  tgservice = 'yes',
-	  strict = 'no',
 	  contact = 'no',
 	  allset = 'no',
 	  text = 'no',
@@ -744,10 +743,20 @@ do
 	if data.lock.reply == 'yes' then
 		delete_msg(msg.id,ok_cb,false)
 	end
+        if data.lock.reply == 'kick' then
+		delete_msg(msg.id,ok_cb,false)
+                kick_user(msg, gid, uid)
+                send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..'</code> <b>kicked for reply</b>', true, 'html')
+	end
     end
     if msg.fwd_from and not is_mod(msg, gid, uid) then
-	if data.lock.fwd == 'yes' then
+	if data.lock.fwd == 'yes' or data.lock.all == 'yes' then
 		delete_msg(msg.id,ok_cb,false)
+	end
+        if data.lock.fwd == 'kick' then
+		delete_msg(msg.id,ok_cb,false)
+		kick_user(msg, gid, uid)
+                send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..'</code> <b>kicked for forward</b>', true, 'html')
 	end
 	if msg.fwd_from.title then
 		if data.lock.links == 'yes' then
@@ -755,12 +764,11 @@ do
 				delete_msg(msg.id,ok_cb,false)
 			end
 		end
-		if data.lock.strict == 'yes' then
+		if data.lock.links == 'kick' then
 			if msg.fwd_from.title:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.fwd_from.title:match("[Hh][Tt][Tt][Pp]") then
-				if data.lock.links == 'no' then
-					delete_msg(msg.id,ok_cb,false)
-				end
+				delete_msg(msg.id,ok_cb,false)
 				kick_user(msg, gid, uid)
+				send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for link</b>', true, 'html')
 			end
 		end
 		if data.lock.tags == 'yes' then
@@ -768,12 +776,11 @@ do
 				delete_msg(msg.id,ok_cb,false)
 			end
 		end
-		if data.lock.strict == 'yes' then
+		if data.lock.tags == 'kick' then
 			if msg.fwd_from.title:match("@") or msg.fwd_from.title:match("#") then
-				if data.lock.tags == 'no' then
-					delete_msg(msg.id,ok_cb,false)
-				end
+				delete_msg(msg.id,ok_cb,false)
 				kick_user(msg, gid, uid)
+				send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for tags</b>', true, 'html')
 			end
 		end
 	end
@@ -797,9 +804,19 @@ do
       if msg.text:match("[1234567890]") and data.lock.number == 'yes' and not is_mod(msg, gid, uid) then
 	 delete_msg(msg.id,ok_cb,false)
       end
+      if msg.text:match("[1234567890]") and data.lock.number == 'kick' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+         kick_user(msg, gid, uid)
+         send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for number</b>', true, 'html')
+      end
       --lock operator
       if (msg.text:match("[Ii][Rr][Aa][Nn][Cc][Ee][Ll][Ll]") or msg.text:match("[Rr][Ii][Gg][Hh][Tt][Ee][Ll]") or msg.text:match("[Mm][Cc][Ii]") or msg.text:match("[Tt][Aa][Ll][Ii][Yy][Aa]") or msg.text:match("[Tt][Aa][Ll][Ii][Aa]") or msg.text:match("ایرانسل") or msg.text:match("رایتل") or msg.text:match("همراه اول") or msg.text:match("تالیا")) and data.lock.opera == 'yes' and not is_mod(msg, gid, uid) then
 	 delete_msg(msg.id,ok_cb,false)
+      end
+      if (msg.text:match("[Ii][Rr][Aa][Nn][Cc][Ee][Ll][Ll]") or msg.text:match("[Rr][Ii][Gg][Hh][Tt][Ee][Ll]") or msg.text:match("[Mm][Cc][Ii]") or msg.text:match("[Tt][Aa][Ll][Ii][Yy][Aa]") or msg.text:match("[Tt][Aa][Ll][Ii][Aa]") or msg.text:match("ایرانسل") or msg.text:match("رایتل") or msg.text:match("همراه اول") or msg.text:match("تالیا")) and data.lock.opera == 'kick' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+         kick_user(msg, gid, uid)
+         send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for operator</b>', true, 'html')
       end
       --lock english
       if is_admin(uid) then
@@ -807,31 +824,41 @@ do
       elseif msg.text:match("[qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM]") and (data.lock.all == 'yes' or data.lock.text == 'yes' or data.lock.english == 'yes') and not is_mod(msg, gid, uid) then
       	 delete_msg(msg.id,ok_cb,false)
       end
+      if is_admin(uid) then
+      	 --return--
+      elseif msg.text:match("[qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM]") and data.lock.english == 'kick' and not is_mod(msg, gid, uid) then
+      	 delete_msg(msg.id,ok_cb,false)
+         kick_user(msg, gid, uid)
+         send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for english</b>', true, 'html')
+      end
       --check tags
       if (msg.text:match("@") or msg.text:match("#")) and not is_mod(msg, gid, uid) and data.lock.tags== 'yes' then
             delete_msg(msg.id,ok_cb,false)
       end
-      if (msg.text:match("@") or msg.text:match("#")) and not is_mod(msg, gid, uid) and data.lock.strict== 'yes' then
-	    if data.lock.tags == 'no' then
-            	delete_msg(msg.id,ok_cb,false)
-	    end
+      if (msg.text:match("@") or msg.text:match("#")) and not is_mod(msg, gid, uid) and data.lock.tags== 'kick' then
+            delete_msg(msg.id,ok_cb,false)
 	    kick_user(msg, gid, uid)
+	    send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for tags</b>', true, 'html')
       end
       --check link
       if (msg.text:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.text:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) and data.lock.links == 'yes' then
             delete_msg(msg.id,ok_cb,false)
       end
-      if (msg.text:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.text:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) and data.lock.strict == 'yes' then
-	    if data.lock.links == 'no' then
-            	delete_msg(msg.id,ok_cb,false)
-	    end
+      if (msg.text:match("[Tt][Ee][Ll][Ee][Gg][Rr][Aa][Mm].[Mm][Ee]") or msg.text:match("[Hh][Tt][Tt][Pp]")) and not is_mod(msg, gid, uid) and data.lock.links == 'kick' then
+            delete_msg(msg.id,ok_cb,false)
 	    kick_user(msg, gid, uid)
+            send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for link</b>', true, 'html')
       end
       -- Anti arabic
       if msg.text:match('([\216-\219][\128-\191])') and _config.administration[gid] then
         if uid > 0 and not is_mod(msg, gid, uid) then
           if data.lock.arabic == 'yes' then
             delete_msg(msg.id,ok_cb,false)
+          end
+	  if data.lock.arabic == 'kick' then
+            delete_msg(msg.id,ok_cb,false)
+            kick_user(msg, gid, uid)
+	    send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for arabic</b>', true, 'html')
           end
         end
       end
@@ -1066,6 +1093,11 @@ do
       if (data.lock.all == 'yes' or data.lock.media == 'yes') and not is_mod(msg, gid, uid) then
 	 delete_msg(msg.id,ok_cb,false)
       end
+      if data.lock.media == 'kick' and not is_mod(msg, gid, uid) then
+	 delete_msg(msg.id,ok_cb,false)
+         kick_user(msg, gid, uid)
+         send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for media</b>', true, 'html')
+      end
       if msg.media.type:match("contact") and data.lock.contact == 'yes' and not is_mod(msg, gid, uid) then
 	 delete_msg(msg.id,ok_cb,false)
       end
@@ -1086,11 +1118,10 @@ do
         if data.lock.tags == 'yes' then
           delete_msg(msg.id,ok_cb,false)
         end
-	if data.lock.strict == 'yes' then
-	   if data.lock.tags == 'no' then
-	      delete_msg(msg.id,ok_cb,false)
-	   end
-	   kick_user(msg, gid, uid)
+        if data.lock.tags == 'kick' then
+          delete_msg(msg.id,ok_cb,false)
+          kick_user(msg, gid, uid)
+          send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for tags</b>', true, 'html')
         end
       end
       --check links
@@ -1098,17 +1129,21 @@ do
         if data.lock.links == 'yes' then
           delete_msg(msg.id,ok_cb,false)
         end
-        if data.lock.strict == 'yes' then
-	   if data.lock.links == 'no' then
-	      delete_msg(msg.id,ok_cb,false)
-	   end
-	   kick_user(msg, gid, uid)
+        if data.lock.links == 'kick' then
+          delete_msg(msg.id,ok_cb,false)
+          kick_user(msg, gid, uid)
+          send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for link</b>', true, 'html')
         end
       end
       -- If user is sending sticker
       if msg.media.caption == 'sticker.webp' and not is_mod(msg, gid, uid) then
         if data.sticker == 'yes' then
           delete_msg(msg.id,ok_cb,false)
+        end
+        if data.sticker == 'kick' then
+          delete_msg(msg.id,ok_cb,false)
+          kick_user(msg, gid, uid)
+	  send_api_msg(msg, get_receiver_api(msg), '<b>User</b><code> '..msg.from.peer_id..' </code><b>kicked for sticker</b>', true, 'html')
         end
       end
     end
@@ -1685,6 +1720,108 @@ do
               end
             end
 	  end
+	  --kick setting
+          if matches[2] == 'kick' then
+	    if matches[3] == 'number' then
+              if data.lock.number == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from number</i>', true, 'html')
+              else
+                data.lock.number = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from number</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'operator' then
+              if data.lock.opera == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from operator</i>', true, 'html')
+              else
+                data.lock.opera = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from operator</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'media' then
+              if data.lock.media == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from media</i>', true, 'html')
+              else
+                data.lock.media = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from media</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'english' then
+              if data.lock.english == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from english</i>', true, 'html')
+              else
+                data.lock.english = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from english</i>', true, 'html')
+              end
+            end
+            if matches[3] == 'contact' then
+              if data.lock.contact == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from contact</i>', true, 'html')
+              else
+                data.lock.contact = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from contact</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'reply' then
+              if data.lock.reply == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from reply</i>', true, 'html')
+              else
+                data.lock.reply = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from reply</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'fwd' then
+              if data.lock.fwd == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from forward</i>', true, 'html')
+              else
+                data.lock.fwd = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from forward</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'tags' then
+              if data.lock.tags == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from tags</i>', true, 'html')
+              else
+                data.lock.tags = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from tags</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'sticker' then
+              if data.sticker == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from sticker</i>', true, 'html')
+              else
+                data.sticker = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from sticker</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'arabic' then
+              if data.lock.arabic == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from arabic</i>', true, 'html')
+              else
+                data.lock.arabic = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from arabic</i>', true, 'html')
+              end
+            end
+	    if matches[3] == 'links' then
+              if data.lock.links == 'kick' then
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already kicked from links</i>', true, 'html')
+              else
+                data.lock.links = 'kick'
+                save_data(data, chat_db)
+                send_api_msg(msg, get_receiver_api(msg), '<i>Group is kicked from links</i>', true, 'html')
+              end
+            end
+          end
           -- Lock {bot|name|member|photo|sticker}
           if matches[2] == 'lock' then
             if matches[3] == 'bot' then
@@ -1721,15 +1858,6 @@ do
                 data.lock.media = 'yes'
                 save_data(data, chat_db)
                 send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from media</i>', true, 'html')
-              end
-            end
-	    if matches[3] == 'strict' then
-              if data.lock.strict == 'yes' then
-                send_api_msg(msg, get_receiver_api(msg), '<i>Group is already locked from strict</i>', true, 'html')
-              else
-                data.lock.strict = 'yes'
-                save_data(data, chat_db)
-                send_api_msg(msg, get_receiver_api(msg), '<i>Group is locked from strict</i>', true, 'html')
               end
             end
 	    if matches[3] == 'english' then
@@ -2138,7 +2266,6 @@ do
                 ..'🔷<b>Lock</b> <i>sticker</i> = '..data.sticker..'\n'
 		..'🔷<b>Lock</b> <i>english</i> = '..data.lock.english..'\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙More settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
 		..'🔷<b>Lock</b> <i>all</i> = '..data.lock.allset..'\n'
-		..'🔷<b>Lock</b> <i>strict</i> = '..data.lock.strict..'\n'
                 ..'🔷<b>Spam protection</b> = <code>'..data.antispam..'</code>\n'
                 ..'🔷<b>Welcome message</b> = <code>'..data.welcome.to..'</code>\n➖➖➖➖➖➖➖➖➖➖\n<code>⚙Mute Settings⚙</code>\n➖➖➖➖➖➖➖➖➖➖\n'
                 ..'🔷<b>Mute</b> <i>text</i> = '..data.lock.text..'\n'
@@ -2149,6 +2276,7 @@ do
 		..'🔷<b>Mute</b> <i>all</i> = '..data.lock.all..'\n➖➖➖➖➖➖➖➖➖➖\n<b>By Eagle</b>'
 	  local text = string.gsub(text,'yes','✅')
 	  local text = string.gsub(text,'no','❌')
+          local text = string.gsub(text,'kick','🚫')
           send_api_msg(msg, get_receiver_api(msg), text, true, 'html')
         end
 
@@ -2476,6 +2604,7 @@ do
       '^!(demod)$', '^!(demod) (@)(%g+)$', '^!(demod)(%s)(%d+)$',
       '^!(grem)$', '^!(grem) (%d+)$', '^!(gremove)$', '^!(gremove) (%d+)$', '^!(remgroup)$', '^!(remgroup) (%d+)$',
       '^!(group) (lock) (%a+)$', '^!(gp) (lock) (%a+)$',
+      '^!(group) (kick) (%a+)$', '^!(gp) (kick) (%a+)$',
       '^!(group) (unmute) (%a+)$', '^!(gp) (unmute) (%a+)$',
       '^!(group) (mute) (%a+)$', '^!(gp) (mute) (%a+)$',
       '^!(group) (settings)$', '^!(gp) (settings)$',
